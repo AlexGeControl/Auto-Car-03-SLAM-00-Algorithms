@@ -14,6 +14,8 @@ ENDIF()
 FIND_PACKAGE(Eigen3 REQUIRED)
 # Sophus:
 SET(SOPHUS_INCLUDE_DIR "/home/alexge/svslocal/include")
+# Pangolin:
+FIND_PACKAGE(Pangolin REQUIRED)
 
 # header files:
 INCLUDE_DIRECTORIES(
@@ -49,5 +51,15 @@ ADD_EXECUTABLE(GN-BA 03-pnp-using-bundle-adjustment/GN-BA.cpp)
 TARGET_LINK_LIBRARIES(
     GN-BA
     ${EIGEN3_LIBS}
+    Sophus
+)
+
+# 04: ICP for pose estimation:
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/04-ICP)
+ADD_EXECUTABLE(trajectory-matching 04-ICP/trajectory-matching.cpp)
+TARGET_LINK_LIBRARIES(
+    trajectory-matching
+    ${EIGEN3_LIBS}
+    ${Pangolin_LIBRARIES}
     Sophus
 )
