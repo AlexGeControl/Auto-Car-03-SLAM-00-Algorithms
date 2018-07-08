@@ -1,0 +1,31 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+
+PROJECT(OBSERVATION_MODEL)
+
+# OpenCV3:
+FIND_PACKAGE(OpenCV 3.0 QUIET)
+IF(NOT OpenCV_FOUND)
+   FIND_PACKAGE(OpenCV 2.4.3 QUIET)
+   IF(NOT OpenCV_FOUND)
+      MESSAGE(FATAL_ERROR "OpenCV > 2.4.3 not found.")
+   ENDIF()
+ENDIF()
+# Eigen3:
+FIND_PACKAGE(Eigen3 REQUIRED)
+
+# header files:
+INCLUDE_DIRECTORIES(
+    ${EIGEN3_INCLUDE_DIR}
+)
+
+# runnable:
+ADD_COMPILE_OPTIONS(-std=c++11)
+
+# 01: Image Undistortion:
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/01-lukas-kanade)
+ADD_EXECUTABLE(optical-flow 01-lukas-kanade/optical-flow.cpp)
+TARGET_LINK_LIBRARIES(
+    optical-flow
+    ${OpenCV_LIBS}
+    ${EIGEN3_LIBS}
+)
