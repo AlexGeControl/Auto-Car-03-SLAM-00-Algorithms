@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <chrono>
 
 using namespace std;
 using namespace Eigen;
@@ -33,6 +34,7 @@ int main(int argc, char **argv) {
     // c. costs:
     double cost = 0, lastCost = 0;  
 
+    chrono::steady_clock::time_point start_time = chrono::steady_clock::now();
     for (int iter = 0; iter < iterations; iter++) {
         MatrixXd H = MatrixXd::Zero(3, 3);             // Hessian = J^T J in Gauss-Newton
         VectorXd b = VectorXd::Zero(3);             // bias
@@ -84,6 +86,10 @@ int main(int argc, char **argv) {
 
         cout << "total cost: " << cost << endl;
     }
+    chrono::steady_clock::time_point end_time = chrono::steady_clock::now();
+
+    chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>(end_time - start_time);
+    cout << "Gauss-Newton solver costs " << time_used.count() << " seconds." << endl;
 
     cout << "estimated abc = " << ae << ", " << be << ", " << ce << endl;
     return 0;

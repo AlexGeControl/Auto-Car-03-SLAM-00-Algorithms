@@ -12,6 +12,10 @@ IF(NOT OpenCV_FOUND)
 ENDIF()
 # Eigen 3:
 FIND_PACKAGE(Eigen3 REQUIRED)
+# Ceres:
+FIND_PACKAGE(Ceres REQUIRED)
+# g2o:
+SET(G2O_INCLUDE_DIR "/usr/local/include/g2o")
 # Pangolin:
 FIND_PACKAGE(Pangolin REQUIRED)
 
@@ -19,6 +23,7 @@ FIND_PACKAGE(Pangolin REQUIRED)
 INCLUDE_DIRECTORIES(
     ${EIGEN3_INCLUDE_DIR}
     ${Pangolin_INCLUDE_DIRS}
+    ${G2O_INCLUDE_DIR}
 )
 
 # runnable:
@@ -47,4 +52,24 @@ ADD_EXECUTABLE(gaussian-newton 03-gaussian-newton-estimation/gaussnewton.cpp)
 TARGET_LINK_LIBRARIES(
     gaussian-newton
     ${OpenCV_LIBS}
+)
+
+# 04: Optimization through Ceres:
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/04-intro-to-ceres)
+ADD_EXECUTABLE(intro-to-ceres 04-intro-to-ceres/intro-to-ceres.cpp)
+TARGET_LINK_LIBRARIES(
+    intro-to-ceres
+    ${OpenCV_LIBS}
+    ${CERES_LIBRARIES}
+)
+
+# 05: Optimization with g2o:
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/05-intro-to-g2o)
+ADD_EXECUTABLE(intro-to-g2o 05-intro-to-g2o/intro-to-g2o.cpp)
+TARGET_LINK_LIBRARIES(
+    intro-to-g2o
+    ${OpenCV_LIBS}
+    ${EIGEN3_LIBS}
+    g2o_core 
+    g2o_stuff
 )
