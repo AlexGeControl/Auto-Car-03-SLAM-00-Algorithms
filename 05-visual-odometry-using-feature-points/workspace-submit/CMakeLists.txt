@@ -14,9 +14,6 @@ ENDIF()
 FIND_PACKAGE(Eigen3 REQUIRED)
 # Sophus:
 SET(SOPHUS_INCLUDE_DIR "/home/alexge/svslocal/include")
-# g2o:
-SET(SUITESPARSE_INCLUDE_DIR "/usr/include/suitesparse/")
-SET(G2O_INCLUDE_DIR "/usr/local/include/g2o")
 # Pangolin:
 FIND_PACKAGE(Pangolin REQUIRED)
 
@@ -24,8 +21,6 @@ FIND_PACKAGE(Pangolin REQUIRED)
 INCLUDE_DIRECTORIES(
     ${EIGEN3_INCLUDE_DIR}
     ${SOPHUS_INCLUDE_DIR}
-    ${SUITESPARSE_INCLUDE_DIR}
-    ${G2O_INCLUDE_DIR}
 )
 # shared libraries:
 LINK_DIRECTORIES(/home/alexge/svslocal/lib)
@@ -67,41 +62,4 @@ TARGET_LINK_LIBRARIES(
     ${EIGEN3_LIBS}
     ${Pangolin_LIBRARIES}
     Sophus
-)
-
-# 05: PnP through g2o:
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/05-pnp-using-g2o)
-ADD_EXECUTABLE(pnp-using-g2o 05-pnp-using-g2o/pnp-using-g2o.cpp)
-TARGET_LINK_LIBRARIES(
-    pnp-using-g2o
-    /usr/lib/x86_64-linux-gnu/libcolamd.so
-    /usr/lib/x86_64-linux-gnu/libklu.so
-    /usr/lib/x86_64-linux-gnu/libcholmod.so
-    /usr/lib/x86_64-linux-gnu/libldl.so
-    /usr/lib/x86_64-linux-gnu/libcamd.so
-    /usr/lib/x86_64-linux-gnu/libamd.so
-    /usr/lib/x86_64-linux-gnu/libcsparse.so
-    /usr/lib/x86_64-linux-gnu/libbtf.so
-    /usr/lib/x86_64-linux-gnu/libumfpack.so
-    /usr/lib/x86_64-linux-gnu/libcxsparse.so
-    /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.so
-    /usr/lib/x86_64-linux-gnu/libccolamd.so
-    /usr/lib/x86_64-linux-gnu/libspqr.so
-    g2o_core g2o_stuff g2o_types_sba g2o_csparse_extension
-    ${OpenCV_LIBS}
-    ${EIGEN3_LIBS}
-)
-
-# 05: PnP through g2o:
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/06-ICP-using-g2o)
-ADD_EXECUTABLE(ICP-using-g2o 06-ICP-using-g2o/ICP-using-g2o.cpp)
-TARGET_LINK_LIBRARIES(
-    ICP-using-g2o
-    ${EIGEN3_LIBS}
-    ${Pangolin_LIBRARIES}
-    Sophus
-    /usr/local/lib/libg2o_core.so 
-    /usr/local/lib/libg2o_stuff.so 
-    /usr/local/lib/libg2o_types_sba.so 
-    /usr/local/lib/libg2o_csparse_extension.so
 )

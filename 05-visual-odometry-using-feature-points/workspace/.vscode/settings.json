@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "core": "cpp",
+        "vector": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "chrono": "cpp",
+        "functional": "cpp",
+        "istream": "cpp",
+        "tuple": "cpp"
+    }
+}
