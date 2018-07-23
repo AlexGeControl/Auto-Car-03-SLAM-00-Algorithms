@@ -81,3 +81,15 @@ TARGET_LINK_LIBRARIES(
     ${CERES_LIBRARIES}
     ${G2O_LIBRARIES}
 )
+
+# 02 - BAL for direct method:
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/02-direct-g2o)
+ADD_EXECUTABLE(directBA 02-direct-g2o/directBA.cpp)
+TARGET_LINK_LIBRARIES(
+    directBA
+    ${OpenCV_LIBS}
+    ${EIGEN3_LIBS}
+    Sophus
+    ${G2O_LIBRARIES}
+    ${Pangolin_LIBRARIES}
+)
