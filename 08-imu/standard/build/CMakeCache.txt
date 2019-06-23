@@ -286,6 +286,9 @@ EIGEN3_INCLUDE_DIR:PATH=/usr/local/include/eigen3
 //The directory containing a CMake configuration file for OpenCV.
 OpenCV_DIR:PATH=/usr/local/share/OpenCV
 
+//The directory containing a CMake configuration file for Sophus.
+Sophus_DIR:PATH=Sophus_DIR-NOTFOUND
+
 //Value Computed by CMake
 imuSimWithPointLine_BINARY_DIR:STATIC=/home/alexge/Workspace/Distributed-System/Spark/01-ML-theory/03-robotics/05-self-driving-car/05-visual-slam/08-imu/standard/build
 
