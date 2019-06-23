@@ -74,7 +74,6 @@ void IMU::addIMUnoise(MotionData& data)
 
 MotionData IMU::MotionModel(double t)
 {
-
     MotionData data;
     // param
     float ellipse_x = 15;
@@ -115,7 +114,71 @@ MotionData IMU::MotionModel(double t)
     data.imu_velocity = dp;
     data.timestamp = t;
     return data;
+}
 
+void integrateEuler(
+    // inputs: pose trajectory, step k
+    std::vector<MotionData> &imudata, double dt, int k, const Eigen::Vector3d &gw, 
+    // outputs: new position, velocity and quaternion
+    Eigen::Vector3d &Pwb, Eigen::Vector3d &Vw, Eigen::Quaterniond &Qwb
+) {
+    // get IMU measurement at timestamp k:
+    MotionData imupose = imudata[k - 1];
+
+    // construct dq:
+    Eigen::Quaterniond dq;
+    Eigen::Vector3d dtheta_half = 0.5 * imupose.imu_gyro * dt;
+    dq.w() = 1;
+    dq.x() = dtheta_half.x();
+    dq.y() = dtheta_half.y();
+    dq.z() = dtheta_half.z();
+
+    // construct a:
+    Eigen::Vector3d acc_w = Qwb * (imupose.imu_acc) + gw;
+
+    // update q:
+    Qwb = Qwb * dq;
+    // update v:
+    Vw = Vw + acc_w * dt;
+    // update p:
+    Pwb = Pwb + Vw * dt + 0.5 * dt * dt * acc_w;
+}
+
+void integrateMidPoint(
+    // inputs: pose trajectory, step k
+    std::vector<MotionData> &imudata, double dt, int k, const Eigen::Vector3d &gw, 
+    // outputs: new position, velocity and quaternion
+    Eigen::Vector3d &Pwb, Eigen::Vector3d &Vw, Eigen::Quaterniond &Qwb
+) {
+    // get IMU measurement at timestamp k & k + 1:
+    MotionData imupose_curr = imudata[k - 1];
+    MotionData imupose_next = imudata[k + 0];
+
+    // construct dq:
+    Eigen::Quaterniond dq;
+    Eigen::Vector3d dtheta_half = 0.5 * (0.5 * (imupose_curr.imu_gyro + imupose_next.imu_gyro))* dt;
+    dq.w() = 1;
+    dq.x() = dtheta_half.x();
+    dq.y() = dtheta_half.y();
+    dq.z() = dtheta_half.z();
+
+    // construct a:
+    Eigen::Quaterniond Qwb_curr = Qwb;
+    Eigen::Quaterniond Qwb_next = Qwb * dq;
+    Eigen::Vector3d acc_w = 0.5 * (
+        // current:
+        (Qwb_curr * (imupose_curr.imu_acc) + gw)
+        + 
+        // next:
+        (Qwb_next * (imupose_next.imu_acc) + gw)
+    );
+
+    // update q:
+    Qwb = Qwb_next;
+    // update v:
+    Vw = Vw + acc_w * dt;
+    // update p:
+    Pwb = Pwb + Vw * dt + 0.5 * dt * dt * acc_w;   
 }
 
 //读取生成的imu数据并用imu动力学模型对数据进行计算，最后保存imu积分以后的轨迹，
@@ -132,45 +195,34 @@ void IMU::testImu(std::string src, std::string dist)
     Eigen::Vector3d Pwb = init_twb_;              // position :    from  imu measurements
     Eigen::Quaterniond Qwb(init_Rwb_);            // quaterniond:  from imu measurements
     Eigen::Vector3d Vw = init_velocity_;          // velocity  :   from imu measurements
-    Eigen::Vector3d gw(0,0,-9.81);    // ENU frame
-    Eigen::Vector3d temp_a;
-    Eigen::Vector3d theta;
+    Eigen::Vector3d gw(0,0,-9.81);                // ENU frame
     for (int i = 1; i < imudata.size(); ++i) {
-
-        MotionData imupose = imudata[i];
-
-        //delta_q = [1 , 1/2 * thetax , 1/2 * theta_y, 1/2 * theta_z]
-        Eigen::Quaterniond dq;
-        Eigen::Vector3d dtheta_half =  imupose.imu_gyro * dt /2.0;
-        dq.w() = 1;
-        dq.x() = dtheta_half.x();
-        dq.y() = dtheta_half.y();
-        dq.z() = dtheta_half.z();
-
-        //　imu 动力学模型　参考svo预积分论文
-        Eigen::Vector3d acc_w = Qwb * (imupose.imu_acc) + gw;  // aw = Rwb * ( acc_body - acc_bias ) + gw
-        Qwb = Qwb * dq;
-        Vw = Vw + acc_w * dt;
-        Pwb = Pwb + Vw * dt + 0.5 * dt * dt * acc_w;
+        // imu 动力学模型:
+        #ifdef MOTION_UPDATE_EULER
+            // a. 欧拉积分
+            integrateEuler(imudata, dt, i, gw, Pwb, Vw, Qwb);
+        #else
+            // b. 中值积分
+            integrateMidPoint(imudata, dt, i, gw, Pwb, Vw, Qwb);
+        #endif
 
         //　按着imu postion, imu quaternion , cam postion, cam quaternion 的格式存储，由于没有cam，所以imu存了两次
-        save_points<<imupose.timestamp<<" "
-                   <<Qwb.w()<<" "
-                   <<Qwb.x()<<" "
-                   <<Qwb.y()<<" "
-                   <<Qwb.z()<<" "
-                   <<Pwb(0)<<" "
-                   <<Pwb(1)<<" "
-                   <<Pwb(2)<<" "
-                   <<Qwb.w()<<" "
-                   <<Qwb.x()<<" "
-                   <<Qwb.y()<<" "
-                   <<Qwb.z()<<" "
-                   <<Pwb(0)<<" "
-                   <<Pwb(1)<<" "
-                   <<Pwb(2)<<" "
-                   <<std::endl;
-
+        save_points << imudata[i].timestamp << " "
+                    << Qwb.w() << " "
+                    << Qwb.x() << " "
+                    << Qwb.y() << " "
+                    << Qwb.z() << " "
+                    << Pwb(0) << " "
+                    << Pwb(1) << " "
+                    << Pwb(2) << " "
+                    << Qwb.w() << " "
+                    << Qwb.x() << " "
+                    << Qwb.y() << " "
+                    << Qwb.z() << " "
+                    << Pwb(0) << " "
+                    << Pwb(1) << " "
+                    << Pwb(2) << " "
+                    << std::endl;
     }
 
     std::cout<<"test　end"<<std::endl;
